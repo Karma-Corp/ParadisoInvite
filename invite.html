@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Convite - Colapso: Paradiso</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --blood:#a30000;
+      --blood-glow:#ff1e1e;
+      --bg:#010101;
+      --fog1:rgba(255,255,255,0.02);
+      --fog2:rgba(255,255,255,0.04);
+    }
+    * { box-sizing:border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0; font-family: 'Trajan Pro', 'Cinzel', 'Times New Roman', serif;
+      background:radial-gradient(circle at 50% 20%, #151515 0%, #030303 70%) fixed;
+      color:#eee; display:flex; align-items:center; justify-content:center; padding:2rem; overflow:hidden; position:relative;
+    }
+    body::before, body::after {
+      content:""; position:absolute; inset:-20%; background:
+        repeating-linear-gradient(60deg, #090909 0 10px, #060606 10px 20px);
+      mix-blend-mode:overlay; opacity:.12; filter:blur(3px);
+      animation:shift 40s linear infinite;
+    }
+    body::after { animation-direction:reverse; animation-duration:55s; }
+    @keyframes shift { from { transform:translate3d(0,0,0);} to { transform:translate3d(10%,5%,0);} }
+    .fog { position:absolute; inset:0; pointer-events:none; background:
+      radial-gradient(circle at 30% 60%, var(--fog1) 0%, transparent 55%),
+      radial-gradient(circle at 70% 40%, var(--fog2) 0%, transparent 60%),
+      radial-gradient(circle at 50% 80%, var(--fog2) 0%, transparent 70%);
+      filter:blur(40px) saturate(120%); animation:fogmove 22s ease-in-out infinite alternate;
+    }
+    @keyframes fogmove { from { transform:translateY(-2%);} to { transform:translateY(3%);} }
+    h1, h2, p { margin:0; }
+    .frame {
+      width:clamp(320px, 80vw, 960px); max-width:960px;
+      background:rgba(0,0,0,0.75); border:2px solid #220202; position:relative; padding:3.3rem 2.4rem 3rem; 
+      box-shadow:0 0 0 2px #000, 0 0 40px -10px #4d0000, inset 0 0 35px -15px #a30000;
+      overflow:hidden;
+    }
+    .frame::before, .frame::after { content:""; position:absolute; inset:0; border:1px solid #2d0000; pointer-events:none; mix-blend-mode:overlay; }
+    .frame::after { box-shadow:inset 0 0 60px -20px #ff000030; }
+    .title-blood { font-family:'UnifrakturMaguntia', 'Old English Text MT', fantasy; font-size:clamp(2.8rem, 7vw, 5.2rem); line-height:1; letter-spacing:.04em; color:var(--blood); text-shadow:0 0 12px #500, 0 0 32px #700, 0 0 4px #ff3d3d; margin-bottom:1.2rem; position:relative; }
+    .sub { font-size:clamp(1.05rem,1.6vw,1.35rem); letter-spacing:.06em; line-height:1.55; font-weight:400; font-family:'Georgia', serif; color:#e8e8e8; position:relative; }
+    .ritual { font-family:'Creepster','Cinzel','Georgia',serif; color:var(--blood-glow); font-size:clamp(1.2rem,2vw,1.6rem); text-shadow:0 0 8px #ff1e1e66, 0 0 20px #a30000, 0 0 2px #fff; margin:2rem 0 1.5rem; letter-spacing:.15em; }
+    .drip { position:absolute; width:8px; background:linear-gradient(#cc0000,#5a0000); top:0; animation:drip 7s linear infinite; filter:drop-shadow(0 0 4px #a30000aa); }
+    .drip:nth-child(1){ left:12%; animation-delay:1s; height:130px; }
+    .drip:nth-child(2){ left:66%; animation-delay:3s; height:95px; }
+    .drip:nth-child(3){ left:40%; animation-delay:5.5s; height:160px; }
+    @keyframes drip { 0% { transform:translateY(-110%);} 70% { opacity:1;} 100% { transform:translateY(140%); opacity:0; } }
+    .cta { margin-top:2.3rem; display:flex; flex-wrap:wrap; gap:1rem; }
+    .cta a { background:#2c0000; border:1px solid #5d0000; padding:.9rem 1.4rem; text-decoration:none; color:#ffded8; font-weight:600; font-family:'Georgia',serif; letter-spacing:.12em; position:relative; overflow:hidden; transition:.3s; text-transform:uppercase; font-size:.8rem; }
+    .cta a::before { content:""; position:absolute; inset:0; background:linear-gradient(120deg,#a30000 0%,#ff1e1e 50%,#a30000 100%); mix-blend-mode:color-dodge; opacity:0; transition:.4s; }
+    .cta a:hover { color:#fff; box-shadow:0 0 18px -6px #ff1e1e; }
+    .cta a:hover::before { opacity:.35; }
+    .scribe { font-family:'Courier New', monospace; font-size:.75rem; opacity:.35; margin-top:2.5rem; letter-spacing:.2em; text-align:center; }
+    @media (max-width:640px) {
+      .frame { padding:2.4rem 1.4rem 2.6rem; }
+      .title-blood { font-size:clamp(2.4rem,11vw,4rem); }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div class="fog"></div>
+  <div id="gate" class="gate" role="dialog" aria-labelledby="gate-title" aria-modal="true">
+    <div class="gate-inner">
+      <div class="scanlines" aria-hidden="true"></div>
+      <h2 id="gate-title">Mensagem confidencial recebida</h2>
+      <p class="gate-desc">Canal seguro estabelecido. Este conteúdo é classificado. Pressione visualizar para decifrar a transmissão.</p>
+      <div class="status-line"><span class="dot"></span><span>Integridade do pacote: <strong>100%</strong></span></div>
+      <button id="revealBtn" class="reveal-btn" type="button">VER CONTEÚDO</button>
+      <p class="hint">Atividade monitorada • DHCP ROT-9 • Nível Vermelho</p>
+    </div>
+  </div>
+  <div class="frame hidden" id="inviteFrame" role="article" aria-labelledby="t" aria-hidden="true">
+    <div class="drip"></div>
+    <div class="drip"></div>
+    <div class="drip"></div>
+  <h1 id="t" class="title-blood">Colapso: Paradiso</h1>
+  <p class="sub">A neblina volta a subir, e com ela novas demandas.</p>
+  <p class="sub">Velhos rituais despertam nas sombras.</p>
+  <p class="sub">O preço para o paraíso é o sangue.</p>
+  <p class="sub">Quem você sacrificaria?</p>
+  <p class="sub">Convido você a participar de Colapso: Paradiso.</p>
+    <div class="ritual">Convite Oficial</div>
+    <div class="scribe">DHARMA CORP // CLASSIFIED</div>
+  </div>
+  <style>
+    .hidden { display:none; }
+    .gate { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 50%, #0d0d0d 0%, #000 85%); z-index:20; overflow:hidden; }
+    .gate-inner { width:min(680px,90vw); background:#050505e6; border:1px solid #2c2c2c; padding:2.8rem 2.2rem 2.4rem; position:relative; font-family: 'Segoe UI', system-ui, sans-serif; backdrop-filter:blur(4px) saturate(140%); box-shadow:0 0 0 2px #000,0 0 34px -8px #ff1e1e55; }
+    .gate-inner::before { content:""; position:absolute; inset:0; background:linear-gradient(120deg, #1a0000 0%, transparent 55%, #1a0000 100%); mix-blend-mode:overlay; pointer-events:none; }
+    .gate-inner h2 { margin:0 0 1rem; font-size:1.55rem; letter-spacing:.08em; font-weight:600; color:#ff3535; text-shadow:0 0 12px #a30000; }
+    .gate-desc { margin:.2rem 0 1.4rem; line-height:1.5; color:#ddd; font-size:.98rem; }
+    .status-line { display:flex; align-items:center; gap:.6rem; font-size:.75rem; letter-spacing:.15em; text-transform:uppercase; color:#ffb4b4; margin:0 0 1.8rem; font-family: 'Courier New', monospace; }
+    .status-line .dot { width:10px; height:10px; border-radius:50%; background:#ff1e1e; box-shadow:0 0 10px 2px #ff1e1eAA; animation:pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { transform:scale(.85); opacity:.7;} 50% { transform:scale(1.15); opacity:1;} }
+    .reveal-btn { background:linear-gradient(90deg,#3a0000,#630000); border:1px solid #a30000; color:#ffd7d7; font-weight:600; letter-spacing:.18em; padding:1rem 1.8rem; cursor:pointer; font-size:.75rem; text-transform:uppercase; font-family:'Cinzel', serif; box-shadow:0 0 0 2px #000,0 0 18px -6px #ff1e1e; position:relative; overflow:hidden; }
+    .reveal-btn::before { content:""; position:absolute; inset:0; background:linear-gradient(120deg,transparent 0%,#ff1e1e33 45%,transparent 60%); mix-blend-mode:color-dodge; transform:translateX(-60%); transition:.65s; }
+    .reveal-btn:hover::before { transform:translateX(0%); }
+    .reveal-btn:hover { color:#fff; }
+    .hint { margin:1.6rem 0 0; font-size:.6rem; letter-spacing:.3em; color:#777; text-transform:uppercase; text-align:center; font-family:'Courier New', monospace; }
+    .scanlines { position:absolute; inset:0; background:repeating-linear-gradient(rgba(255,0,0,0.06) 0 2px, transparent 2px 4px); mix-blend-mode:overlay; pointer-events:none; animation:sl 8s linear infinite; }
+    @keyframes sl { from { background-position:0 0;} to { background-position:0 100%;} }
+    .reveal-anim { animation:fadeOutGate .9s ease forwards; }
+    @keyframes fadeOutGate { 0% { opacity:1; } 70% { opacity:0; } 100% { opacity:0; visibility:hidden; } }
+    .frame.reveal { display:block; animation:fadeInInvite 1s ease .3s forwards; opacity:0; }
+    @keyframes fadeInInvite { to { opacity:1; } }
+  </style>
+  <audio id="inviteBgm" src="resources/music/Karma-Abertura_Master.mp3" preload="auto" loop style="display:none"></audio>
+  <script>
+    // Robust background music handling (autoplay policies differ per browser)
+    const inviteBgm = document.getElementById('inviteBgm');
+    inviteBgm.volume = 0.2;
+    let bgmPlaying = false;
+    let bgmTried = 0;
+    const MAX_TRIES = 5;
+
+    function attemptPlay(reason){
+      if(bgmPlaying) return;
+      bgmTried++;
+      const p = inviteBgm.play();
+      if(p && typeof p.then === 'function'){
+        p.then(()=>{ bgmPlaying = true; removeUnlockUI(); }).catch(err=>{
+          // Autoplay blocked, prepare manual unlock if not already
+          if(bgmTried >= 2) showUnlockUI();
+          if(bgmTried < MAX_TRIES) setTimeout(()=>attemptPlay('retry'), 1200);
+        });
+      }
+    }
+
+    function startInviteBgm(){ attemptPlay('gesture'); }
+
+    // Multiple gesture types for broader coverage
+    ['pointerdown','click','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,startInviteBgm,{ once:false, passive:true }));
+    // Visibility change (e.g. tab refocus) — often re-allows audio
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) attemptPlay('visibility'); });
+    // Timed gentle retries (will silently fail if blocked)
+    setTimeout(()=>attemptPlay('timer1'), 1800);
+    setTimeout(()=>attemptPlay('timer2'), 4000);
+
+    // Unlock UI (only if needed)
+    let unlockBtn;
+    function showUnlockUI(){
+      if(unlockBtn || bgmPlaying) return;
+      unlockBtn = document.createElement('button');
+      unlockBtn.textContent = 'Ativar Áudio';
+      unlockBtn.setAttribute('aria-label','Ativar música de fundo');
+      unlockBtn.style.cssText = 'position:fixed;bottom:12px;right:12px;background:#3a0000;border:1px solid #a30000;color:#ffd7d7;font-family:Cinzel,serif;font-size:.7rem;letter-spacing:.15em;padding:.65rem 1rem;cursor:pointer;z-index:60;text-transform:uppercase;box-shadow:0 0 0 2px #000,0 0 14px -6px #ff1e1e;';
+      unlockBtn.addEventListener('click',()=>attemptPlay('manual'));
+      document.body.appendChild(unlockBtn);
+    }
+    function removeUnlockUI(){ if(unlockBtn){ unlockBtn.remove(); unlockBtn=null; } }
+
+    // Optional mute toggle (press M)
+    window.addEventListener('keydown', e=>{ if(e.key.toLowerCase()==='m'){ inviteBgm.muted = !inviteBgm.muted; } });
+
+    // Gate reveal logic
+    const gate = document.getElementById('gate');
+    const frame = document.getElementById('inviteFrame');
+    const revealBtn = document.getElementById('revealBtn');
+    revealBtn?.addEventListener('click', ()=>{
+      startInviteBgm(); // ensure gesture triggers attempt
+      gate.classList.add('reveal-anim');
+      frame.classList.remove('hidden');
+      frame.classList.add('reveal');
+      frame.setAttribute('aria-hidden','false');
+      setTimeout(()=>{ gate.style.display='none'; }, 1000);
+    });
+  </script>
+</body>
+</html>

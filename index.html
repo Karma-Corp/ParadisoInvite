@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8" />
+	<title>Dharma Corp</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<style>
+		:root {
+			--bg:#0b0f17;
+			--panel:#16202eDD;
+			--accent:#55ffa8;
+			--accent-soft:#55ffa822;
+			--hannah:#ffb347;
+			--carlinha:#55ffa8;
+			--desc:#cbd5e1;
+			--font-stack: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
+		}
+		* { box-sizing:border-box; }
+		body {
+			margin:0;
+			font-family: var(--font-stack);
+			background: radial-gradient(circle at 70% 20%, #1d2b3d 0%, #0b1018 70%) fixed var(--bg);
+			color:#e2e8f0;
+			min-height:100dvh;
+			overflow:hidden;
+			display:flex;
+			flex-direction:column;
+		}
+		header {
+			padding:.5rem 1rem;
+			font-size:.85rem;
+			letter-spacing:.08em;
+			text-transform:uppercase;
+			color:#64748b;
+			display:flex;
+			gap:1rem;
+			align-items:center;
+		}
+		#stage {
+			flex:1;
+			position:relative;
+			display:flex;
+			flex-direction:column;
+			align-items:stretch;
+			justify-content:flex-end;
+			padding:1rem clamp(1rem,4vw,3rem) 2rem;
+			isolation:isolate;
+		}
+		.background-art {
+			position:absolute; inset:0; z-index:0;
+			background:
+				linear-gradient(180deg,rgba(5,12,18,.65) 0%,rgba(5,12,18,.35) 55%,rgba(5,12,18,.9) 100%),
+				url("resources/images/bg/hannah%20room%20dharma.png");
+			background-size:cover; background-position:center center; background-repeat:no-repeat;
+			filter:brightness(.95) saturate(1.05);
+		}
+		#portrait-area {
+			position:relative; width:100%; flex:0 0 auto;
+			display:flex; align-items:center; justify-content:center;
+			pointer-events:none; margin:0 auto 0; padding:0 0 1rem;
+			z-index:6;
+		}
+		.portrait {
+			width:100%; max-width:640px; position:relative;
+			background:#050a0f;
+			border:2px solid var(--accent-soft);
+			border-radius:22px;
+			box-shadow:0 0 0 3px #0008, 0 12px 42px -8px #000;
+			padding:0; overflow:hidden;
+			opacity:0; transform:translateY(14px); transition:.6s ease;
+		}
+		.portrait.visible { opacity:1; transform:translateY(0); }
+		#carlinhaPortraitImg { width:100%; height:auto; display:block; object-fit:contain; background:#000; }
+		#carlinhaPortraitImg.obscured { filter:brightness(0) contrast(140%) saturate(0)!important; }
+		.portrait.hiddenPortrait { opacity:0 !important; transform:translateY(40px) scale(.92)!important; transition:.65s ease; }
+		.portrait::before {
+			content:"";
+			position:absolute; inset:0; background:radial-gradient(circle at 50% 35%, #3b5f7d33 0%, transparent 65%);
+			mix-blend-mode:screen; pointer-events:none;
+		}
+		/* Simple stylized anime style placeholder for Carlinha */
+		.carlinha-art {
+			position:relative; width:100%; height:100%;
+			display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+			font-size:.75rem; color:#a6fcd4; letter-spacing:.15em;
+		}
+		.carlinha-art svg { width:85%; height:auto; filter:drop-shadow(0 4px 6px #000a); }
+		#dialogue-panel {
+			position:relative; z-index:5;
+			width:100%; max-width:1100px;
+			background:linear-gradient(135deg,var(--panel), #0e161fEE 120%);
+			border:1px solid #334155;
+			border-radius:18px;
+			padding:1rem 1.2rem 1.3rem;
+			box-shadow:0 8px 32px -12px #000c, 0 0 0 1px #ffffff05 inset;
+			backdrop-filter:blur(8px) saturate(180%);
+			cursor:pointer;
+			transition:background .4s;
+			margin:0 auto;
+		}
+		#dialogue-panel:hover { background:linear-gradient(135deg,#1d2b3aEE,#13202cEE 120%); }
+		#name-box {
+			font-weight:600; font-size:1rem; margin:0 0 .25rem; letter-spacing:.05em;
+		}
+		#name-box span { padding:.25rem .7rem; border-radius:1rem; background:#1e293b; display:inline-block; }
+		#name-box .hannah { background:linear-gradient(90deg,#553017,#8d5b25); color:#ffd9b0; }
+		#name-box .carlinha { background:linear-gradient(90deg,#055f3b,#08965d); color:#d1ffe9; }
+		#text { line-height:1.5; font-size:1.05rem; min-height:4.2em; }
+		#text.description { font-style:italic; color:var(--desc); }
+		#progress-tip { position:absolute; right:1rem; bottom:.4rem; font-size:.65rem; letter-spacing:.15em; text-transform:uppercase; color:#64748b; }
+		#overlay { position:absolute; inset:0; z-index:50; display:none; align-items:center; justify-content:center; background:#02070cdd; backdrop-filter:blur(6px); }
+		#overlay.active { display:flex; animation:fade .5s ease; }
+		@keyframes fade { from {opacity:0} to {opacity:1} }
+		.symbol-container { text-align:center; max-width:600px; }
+		.symbol-container h2 { font-weight:500; letter-spacing:.1em; color:var(--carlinha); }
+		.symbol-placeholder {
+			width:340px; max-width:80vw; aspect-ratio:1/1; margin:1rem auto 1.5rem;
+			background:repeating-conic-gradient(from 0deg,#0d1822 0deg,#0d1822 15deg,#132635 15deg,#132635 30deg);
+			border:3px solid var(--carlinha); border-radius:12px; position:relative;
+			display:flex; align-items:center; justify-content:center; color:var(--carlinha);
+			font-weight:600; font-size:1.1rem; letter-spacing:.15em;
+			box-shadow:0 0 0 4px #000, 0 0 22px -5px var(--carlinha);
+			overflow:hidden;
+		}
+		.symbol-placeholder::after {
+			content:""; position:absolute; inset:0; background:
+				radial-gradient(circle at 30% 30%,#55ffa811 0%,transparent 60%),
+				radial-gradient(circle at 70% 70%,#55ffa811 0%,transparent 60%);
+			mix-blend-mode:overlay; pointer-events:none;
+		}
+		button.inline { background:#08965d; border:none; color:#e7fff5; padding:.65rem 1.1rem; font-weight:600; border-radius:10px; cursor:pointer; font-size:.9rem; letter-spacing:.05em; box-shadow:0 4px 14px -6px #0009; }
+    /* #portrait-area { position:absolute; left:clamp(0.5rem,2vw,2rem); top:clamp(.5rem,1.4vw,1.6rem); bottom:clamp(7.5rem,18vh,14rem); width:clamp(300px,34vw,430px); padding:0; display:flex; align-items:center; } */
+		button.inline:hover { background:#0baa69; }
+		@media (min-width:960px){
+			#stage { flex-direction:row; align-items:flex-end; }
+			#portrait-area { position:absolute; left:clamp(0.5rem,2vw,2rem); bottom:3vh; width:clamp(300px,34vw,430px); padding:0; display:flex; align-items:center; }
+			#dialogue-panel { margin-left:clamp(320px,36vw,480px); }
+		}
+		@media (max-width:959px){
+			#portrait-area { order:0; }
+			#dialogue-panel { order:1; }
+		}
+		.symbol-img { width:auto; max-width:100%; max-height:70vh; display:block; margin:0 auto 1.2rem; object-fit:contain; background:#071015; border:2px solid var(--carlinha); box-shadow:0 0 0 4px #000, 0 0 22px -6px var(--carlinha); border-radius:12px; }
+	</style>
+</head>
+<body>
+	<header>
+		<strong>Dharma Corp // Quarto da Dra. Hannah Pinheiro</strong>
+	</header>
+	<div id="stage">
+		<div class="background-art" aria-hidden="true"></div>
+		<div id="portrait-area">
+			<div class="portrait visible" id="carlinhaPortrait" aria-label="Retrato de Carlinha, IA da Dharma Corp">
+				<img id="carlinhaPortraitImg" class="obscured" src="resources/images/carlinha-portraits/carlinha-smile.png" alt="Carlinha" />
+			</div>
+		</div>
+		<div id="dialogue-panel" role="button" aria-live="polite" aria-label="Caixa de diálogo" tabindex="0">
+			<div id="name-box"></div>
+			<div id="text"></div>
+			<div id="progress-tip">Avançar ▶</div>
+		</div>
+		<div id="overlay" aria-hidden="true">
+			<div class="symbol-container">
+				<h2>Arquivo recebido</h2>
+				<img id="symbolImage" class="symbol-img" src="resources/images/items/symbol.png" alt="Símbolo deixado na cena do crime" />
+				<p style="line-height:1.4; font-size:.85rem; color:#c7fcec; max-width:46ch; margin:0 auto 1rem;">Arquivo recebido de perícia. Pressione continuar.</p>
+				<button class="inline" id="continueBtn">Continuar</button>
+			</div>
+		</div>
+	</div>
+	<script>
+	// Roteiro com áudio e humor (mood) para Carlinha
+	const script = [
+    { type:'description', text:'É manhã. Em um quarto na Dharma Corp uma pessoa está deitada.' },
+    { type:'description', text:'Doutora Hannah Pinheiro. Ela se revira na cama como se estivesse tendo um pesadelo.' },
+    { type:'description', text:'O beep de um aparelho de monitoramento interrompe o silêncio e a faz acordar.' },
+    { type:'description', text:'Com dificuldade, ela se senta na cama e esfrega os olhos. Ela tateia uma o suporte de soro ao seu lado até encontrar a agulha.' },
+    { type:'description', text:'Sem cerimônia, ela perfura a pele do braço e, com a precisão de quem faz isso todos os dias, se conecta à infusão intravenosa.' },
+    { type:'description', text:'Cidinazol.' },
+		{ type:'description', text:'Dra. Hannah Pinheiro se levanta de sua cama e se dirige a sua mini cozinha acoplada ao quarto.' },
+		{ type:'description', text:'Hannah começa a falar em voz alta enquanto prepara um café.' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Bom dia, Carlinha, alguma novidade?' },
+    { type:'description', text:'Um monitor na mesa ao lado se acende, o rosto de Carlinha aparece na tela.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smile', audio:'Bom dia, doutora, tudo bem com você.mp3', text:'Bom dia, doutora, tudo bem com você?' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smirk', audio:'Reparei que ficou até tarde mexendo com o PLAZA de novo..mp3', text:'Reparei que ficou até tarde mexendo com o PLAZA de novo.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'sad', audio:'A doutora deveria descansar mais, não faz bem para a sua condição ficar sem dormir..mp3', text:'A doutora deveria descansar mais, não faz bem para a sua condição ficar sem dormir.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'sad', audio:'Doutora Hannah, está tomando as doses de Cidinazol no horário correto.mp3', text:'Doutora Hannah, está tomando as doses de Cidinazol no horário correto?' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smirk', audio:'Eu posso te lembrar se quiser. Da última vez que você esqueceu foi problêmatico.mp3', text:'Eu posso te lembrar se quiser. Da última vez que você esqueceu foi problêmatico...' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Carlinha eu não pedi seus conselhos e cuidados. Se não tem nada de novo então me dê licença…' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smile', audio:'Como sempre a doutora sendo rabugenta pela manhã haha.mp3', text:'Como sempre a doutora sendo rabugenta pela manhã haha' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'…' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smile', audio:'Ok ok, temos novidades, juro, juro. Mas a doutora parece apressada então.mp3', text:'Ok ok, temos novidades, juro, juro. Mas a doutora parece apressada então…' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Carlinha, pelo amor de deus, chega! Fala logo!' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smile', audio:'Haha! Pois bem. A doutora deve saber sobre o Maníaco da Dança..mp3', text:'Haha! Pois bem. A doutora deve saber sobre o Maníaco da Dança.' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'O tal serial killer que mata os outros e dança, isso é assunto da polícia.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smirk', audio:'Pode até ser, mas na última cena do crime ele deixou algo curioso para trás..mp3', text:'Pode até ser, mas na última cena do crime ele deixou algo curioso para trás.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smirk', audio:'Para ser mais precisa, uma marca, um símbolo. Vou encaminhar para a doutora.mp3', text:'Para ser mais precisa, uma marca, um símbolo. Vou encaminhar para a doutora' },
+		{ type:'action', action:'showSymbol' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Hmm, se me lembro bem, esse é o tal símbolo do culto que Leonardo comentou.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smirk', audio:'Exato, doutora. Parece que finalmente eles deram as caras novamente.mp3', text:'Exato, doutora. Parece que finalmente eles deram as caras novamente.' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Carlinha, manda uma mensagem para o Leonardo, pede para ele vir aqui.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'smile', audio:'Certo é pra já, doutora. E se ele não visualizar Ele é meio ruim com celular, né.mp3', text:'Certo é pra já, doutora. E se ele não visualizar? Ele é meio ruim com celular, né?' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Dai você tenta com aquele menino, Sam.' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'angry', audio:'Humpf, ele não.mp3', text:'Humpf, ele não.' },
+		{ type:'dialogue', speaker:'Dra. Hannah Pinheiro', who:'hannah', text:'Vai logo!' },
+		{ type:'dialogue', speaker:'Carlinha', who:'carlinha', mood:'angry', audio:'Tá bom, tá bom, tô indo.mp3', text:'Tá bom, tá bom, tô indo.' },
+		{ type:'action', action:'hidePortrait' },
+    { type:'description', text:'...' },
+    { type:'description', text:'Mensagem recebida...' },
+		{ type:'action', action:'redirectInvite' }
+	];
+
+	const nameBox = document.getElementById('name-box');
+	const textBox = document.getElementById('text');
+	const panel = document.getElementById('dialogue-panel');
+	const overlay = document.getElementById('overlay');
+	const continueBtn = document.getElementById('continueBtn');
+	const portraitImg = document.getElementById('carlinhaPortraitImg');
+	let index = 0;
+	let typing = false;
+	let typeTimeout;
+	let bgmStarted = false;
+	const voiceCache = new Map();
+	const portraitPaths = {
+		smile:'resources/images/carlinha-portraits/carlinha-smile.png',
+		smirk:'resources/images/carlinha-portraits/carlinha-smirk.png',
+		sad:'resources/images/carlinha-portraits/carlinha-sad.png',
+		angry:'resources/images/carlinha-portraits/carlinha-angry.png'
+	};
+
+	// BGM setup (starts on first user interaction due to autoplay policies)
+	const bgm = new Audio('resources/music/03 - SEEK.mp3');
+	bgm.loop = true; bgm.volume = 0.2;
+
+	function startBgmOnce(){ if(!bgmStarted){ bgmStarted=true; bgm.play().catch(()=>{}); } }
+
+	function setName(scn) {
+		if (scn.type !== 'dialogue') { nameBox.innerHTML=''; return; }
+		const cls = scn.who === 'hannah' ? 'hannah' : 'carlinha';
+		nameBox.innerHTML = `<span class="${cls}">${scn.speaker}</span>`;
+	}
+
+	function typeText(full, cls) {
+		typing = true;
+		textBox.className = cls || '';
+		textBox.textContent = '';
+		const chars = [...full];
+		let i=0;
+		const speedBase = 26;
+		const pump = () => {
+			if (i < chars.length) {
+				textBox.textContent += chars[i++];
+				const ch = chars[i-1];
+				const pause = /[,.…!?]/.test(ch) ? 140 : 0;
+				typeTimeout = setTimeout(pump, speedBase + pause);
+			} else {
+				typing = false;
+			}
+		};
+		pump();
+	}
+
+	function updatePortrait(mood){
+		if(!mood || !portraitPaths[mood]) return;
+		const newSrc = portraitPaths[mood];
+		if(portraitImg.getAttribute('src') === newSrc) return;
+		portraitImg.style.opacity = '0';
+		setTimeout(()=>{ portraitImg.src = newSrc; portraitImg.onload = ()=>{ portraitImg.style.opacity='1'; }; },180);
+	}
+
+	function playVoice(scn){
+		if (scn.who !== 'carlinha' || !scn.audio) return;
+		const key = scn.audio;
+		let audio = voiceCache.get(key);
+		if(!audio){
+			audio = new Audio('resources/audios/' + key);
+			audio.volume = 1.0;
+			voiceCache.set(key,audio);
+		}
+		try { audio.currentTime = 0; audio.play(); } catch(_){}
+	}
+
+	function showSymbol() {
+		overlay.classList.add('active');
+		overlay.setAttribute('aria-hidden','false');
+	}
+	continueBtn.addEventListener('click', ()=>{
+		overlay.classList.remove('active');
+		overlay.setAttribute('aria-hidden','true');
+		next();
+	});
+
+	function redirectInvite() {
+		textBox.innerHTML = '<em>Redirecionando…</em>';
+		setTimeout(()=>{ window.location.href = 'invite.html'; }, 1200);
+	}
+
+	function hidePortrait(){
+		const wrapper = document.getElementById('carlinhaPortrait');
+		if(!wrapper) return;
+		wrapper.classList.add('hiddenPortrait');
+		setTimeout(()=>{ if(wrapper) wrapper.style.display='none'; }, 700);
+	}
+
+	function playScene() {
+		const scn = script[index];
+		if (!scn) return;
+		if (scn.type === 'action') {
+			if (scn.action === 'showSymbol') {
+				showSymbol();
+			} else if (scn.action === 'hidePortrait') {
+				hidePortrait();
+			} else if (scn.action === 'redirectInvite') {
+				redirectInvite();
+			}
+			return;
+		}
+		setName(scn);
+		const cls = scn.type === 'description' ? 'description' : '';
+		if (scn.who === 'carlinha') { 
+			// Reveal portrait if still obscured
+			if (portraitImg.classList.contains('obscured')) {
+				portraitImg.classList.remove('obscured');
+				portraitImg.style.transition = 'filter 1.2s ease, opacity .35s';
+				setTimeout(()=>{ portraitImg.style.filter=''; },20);
+			}
+			updatePortrait(scn.mood); 
+			playVoice(scn); 
+		}
+		typeText(scn.text, cls);
+	}
+
+	function next() {
+		startBgmOnce();
+		if (typing) { // complete instantly
+			clearTimeout(typeTimeout); typing=false;
+			const scn = script[index];
+			if (scn.type === 'dialogue' || scn.type === 'description') {
+				textBox.textContent = scn.text;
+			}
+			return;
+		}
+		index++;
+		playScene();
+	}
+
+	panel.addEventListener('click', next);
+	panel.addEventListener('keydown', e=>{ if (e.key==='Enter' || e.key===' ') { e.preventDefault(); next(); }});
+	// Start
+	playScene();
+	</script>
+</body>
+</html>
